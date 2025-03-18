@@ -1,0 +1,6 @@
+fastapi
+fastapi[all]  
+pydantic
+qrcode
+uvicorn  
+supabase
