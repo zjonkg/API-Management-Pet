@@ -17,6 +17,7 @@ def create(pet: Pet):
     qr_code = generate_qr(pet_id)  
     update_pet_qr(pet_id, qr_code)  
     pet.qr_code = qr_code
+
     return {"pet": created_pet, "qr_code": f"data:image/png;base64,{qr_code}"}
 
 @router.get("/get/{pet_id}")
