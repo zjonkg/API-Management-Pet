@@ -5,13 +5,19 @@ from app.services.qr_service import generate_qr
 
 def create_pet(pet):
     """Crea una nueva mascota en la base de datos y le asigna un QR."""
-    created_pet = supabase.table("virtual_pets").insert(pet.model_dump()).execute()
-    if created_pet.data is None:
+    
+    created_pet_response = supabase.table("virtual_pets").insert(pet.dict(exclude_unset=True)).execute()
+
+    if not created_pet_response.data:
         raise HTTPException(status_code=400, detail="Error al crear la mascota")
-    pet_id = created_pet.data[0]["id"]  
+    
+    pet_id = created_pet_response.data[0]["id"]  
     qr_code = generate_qr(pet_id)
     update_pet_qr(pet_id, qr_code)
-    return {"pet": created_pet.data, "qr_code": f"{qr_code}"}
+    
+    created_pet_response.data[0]["qr"] = qr_code
+
+    return {"pet": created_pet_response.data[0]}
 
 def get_pet(pet_id):
     """Obtiene una mascota por su ID."""
