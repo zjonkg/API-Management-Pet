@@ -23,7 +23,7 @@ def get(pet_id: str):
     """
     return get_pet(pet_id)
 
-@router.post("/assign_pet", summary="Asignar una mascota a un dueño", description="Este endpoint asigna una mascota a un dueño", response_model=PetResponse)
+@router.post("/assign_pet", summary="Asignar una mascota a un dueño", description="Este endpoint asigna una mascota a un dueño")
 def assign(request: AssignPetRequest):
     """
     Asigna una mascota a un dueño.

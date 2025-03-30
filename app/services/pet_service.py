@@ -30,7 +30,7 @@ def get_pet(pet_id):
 
 def get_pet_by_qr(qr_code):
     """Obtiene una mascota por su código QR."""
-    response = supabase.table("virtual_pets").select("*").eq("qr_code", qr_code).execute()
+    response = supabase.table("virtual_pets").select("*").eq("qr", qr_code).execute()
 
     if not response.data:
         return None  # No lanzar error aquí, lo manejamos en `assign_pet`
