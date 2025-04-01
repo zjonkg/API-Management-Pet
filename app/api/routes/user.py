@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 import supabase
-from app.models.users import UserAll, ForgotPassword, UserLogin
+from app.models.users import *
 from app.services.supabase_service import test_db_connection
 
 router = APIRouter()
@@ -28,16 +28,27 @@ async def create_user(user: UserAll):
         raise HTTPException(status_code=400, detail="Error creating user")
     return response.data[0]
 
-@router.post("/user/login")
+@router.post("/login", response_model=UserResponse)
 async def login_user(user: UserLogin):
-    """
-    Inicia sesión de un usuario.
-    - **user**: Información del usuario para iniciar sesión.
-    """
-    response = supabase.table("users").select("*").eq("email", user.email).eq("password", user.password).execute()
-    if not response.data:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    return response.data[0]
+    try:
+        response = supabase.table("users").select("*").eq("email", user.email).execute()
+        
+        if not response.data:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Credenciales inválidas"
+            )
+            
+        user_data = response.data[0]
+        
+        return user_data 
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error en el servidor: {str(e)}"
+        )
+
 
 @router.put("/user/{email}/forgot_password", 
            status_code=status.HTTP_200_OK,

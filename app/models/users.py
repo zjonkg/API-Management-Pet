@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, EmailStr
 from typing import Optional
 from datetime import datetime
 
@@ -42,6 +42,16 @@ class ForgotPassword(BaseModel):
             raise ValueError('Las contraseñas no coinciden')
         return v
 
-class UserLogin():
-    email: str
+class UserLogin(BaseModel):
+    email: EmailStr
     password: str
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    name: Optional[str] = None
+    is_active: Optional[bool] = True
+    
+    class Config:
+        # Esto asegura que aunque el modelo ORM tenga más campos, solo se devuelvan estos
+        orm_mode = True
