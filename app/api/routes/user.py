@@ -52,65 +52,66 @@ async def login_user(user: UserLogin):
         )
 
 
-@router.put("/{email}/forgot_password", 
-           status_code=status.HTTP_200_OK,
-           responses={
-               200: {"description": "Contraseña cambiada exitosamente"},
-               400: {"description": "Las contraseñas no coinciden o el usuario no existe"},
-               500: {"description": "Error del servidor al actualizar la contraseña"}
-           })
-async def forgot_password(email: str, user: ForgotPassword):
+@router.put(
+    "/forgot-password",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Contraseña cambiada exitosamente"},
+        400: {"description": "Las contraseñas no coinciden o el usuario no existe"},
+        404: {"description": "Usuario no encontrado"},
+        500: {"description": "Error del servidor al actualizar la contraseña"}
+    }
+)
+async def forgot_password(email: str, user_data: ForgotPassword):
     """
     Cambia la contraseña de un usuario olvidada.
     
-    - **email**: Correo electrónico del usuario (en path y body para doble verificación)
-    - **new_password**: Nueva contraseña
-    - **confirm_password**: Confirmación de la nueva contraseña (debe coincidir)
+    Parámetros:
+    - email: Correo electrónico del usuario (como query parameter)
+    - new_password: Nueva contraseña
+    - confirm_password: Confirmación de la nueva contraseña
     """
-
-    if email != user.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El correo en la URL no coincide con el del cuerpo"
-        )
-
-    if user.new_password != user.confirm_password:
+    if user_data.new_password != user_data.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Las contraseñas no coinciden"
         )
     
     try:
-        user_exists = ( supabase.table("users")
-                             .select("email")
-                             .eq("email", email)
-                             .execute()
-                        )
+        user_response = supabase.table("users")\
+                              .select("id")\
+                              .eq("email", email)\
+                              .execute()
         
-        if not user_exists.data:
+        if not user_response.data:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El usuario no existe"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No existe una cuenta con este correo electrónico"
             )
-
-        response = ( supabase.table("users")
-                          .update({"password": hash_password(user.new_password)})
-                          .eq("email", email)
-                          .execute()
-        )
         
-        if not response.data:
+        # Actualizar contraseña
+        update_response = supabase.table("users")\
+                                .update({
+                                    "password": hash_password(user_data.new_password),
+                                    "updated_at": "now()"
+                                })\
+                                .eq("email", email)\
+                                .execute()
+        
+        if not update_response.data:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="No se pudo actualizar la contraseña"
             )
             
-        return {"detail": "Contraseña cambiada exitosamente"}
+        return {"detail": "Contraseña actualizada correctamente"}
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error del servidor: {str(e)}"
+            detail=f"Error interno del servidor: {str(e)}"
         )
 
 @router.put("/{id}")
