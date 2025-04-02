@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -25,20 +25,22 @@ class ForgotPassword(BaseModel):
     - confirm_password: Confirmación de la nueva contraseña
     """
     new_password: str = Field(..., min_length=8, max_length=64, 
-                            description="Nueva contraseña (mínimo 8 caracteres)")
+                              description="Nueva contraseña (mínimo 8 caracteres)")
     confirm_password: str = Field(..., description="Confirmación de la nueva contraseña")
 
-    @validator('new_password')
-    def password_complexity(cls, v):
+    @field_validator('new_password')
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
         if not any(char.isdigit() for char in v):
             raise ValueError('La contraseña debe contener al menos un número')
         if not any(char.isupper() for char in v):
             raise ValueError('La contraseña debe contener al menos una mayúscula')
         return v
 
-    @validator('confirm_password')
-    def passwords_match(cls, v, values, **kwargs):
-        if 'new_password' in values and v != values['new_password']:
+    @field_validator('confirm_password')
+    @classmethod
+    def passwords_match(cls, v: str, values: dict) -> str:
+        if values.get('new_password') and v != values['new_password']:
             raise ValueError('Las contraseñas no coinciden')
         return v
 

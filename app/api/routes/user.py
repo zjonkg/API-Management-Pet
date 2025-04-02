@@ -1,23 +1,25 @@
 from fastapi import APIRouter, HTTPException, status
 import supabase
 from app.models.users import *
+from app.core.database import supabase
 from app.services.supabase_service import test_db_connection
+from app.services.hashed_password import hash_password
 
 router = APIRouter()
 
-@router.get("/users")
+@router.get("/")
 async def get_users():
     response = supabase.table("users").select("*").execute()
     return response.data
 
-@router.get("/users/{id}")
-async def get_user(id: str):
+@router.get("/{id}")
+async def get_user(id: int):
     response = supabase.table("users").select("*").eq("id", id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
-@router.post("/user")
+@router.post("/singup")
 async def create_user(user: UserAll):
     """
     Crea un nuevo usuario.
@@ -50,7 +52,7 @@ async def login_user(user: UserLogin):
         )
 
 
-@router.put("/user/{email}/forgot_password", 
+@router.put("/{email}/forgot_password", 
            status_code=status.HTTP_200_OK,
            responses={
                200: {"description": "Contraseña cambiada exitosamente"},
@@ -79,10 +81,11 @@ async def forgot_password(email: str, user: ForgotPassword):
         )
     
     try:
-        user_exists = supabase.table("users")\
-                             .select("email")\
-                             .eq("email", email)\
+        user_exists = ( supabase.table("users")
+                             .select("email")
+                             .eq("email", email)
                              .execute()
+                        )
         
         if not user_exists.data:
             raise HTTPException(
@@ -90,10 +93,11 @@ async def forgot_password(email: str, user: ForgotPassword):
                 detail="El usuario no existe"
             )
 
-        response = supabase.table("users")\
-                          .update({"password": user.new_password})\
-                          .eq("email", email)\
+        response = ( supabase.table("users")
+                          .update({"password": hash_password(user.new_password)})
+                          .eq("email", email)
                           .execute()
+        )
         
         if not response.data:
             raise HTTPException(
@@ -109,14 +113,14 @@ async def forgot_password(email: str, user: ForgotPassword):
             detail=f"Error del servidor: {str(e)}"
         )
 
-@router.put("/user/{id}")
+@router.put("/{id}")
 async def update_user(id: str, user: dict):
     response = supabase.table("users").update(user).eq("id", id).execute()
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data[0]
 
-@router.delete("/user/{id}")
+@router.delete("/{id}")
 async def delete_user(id: str):
     response = supabase.table("users").delete().eq("id", id).execute()
     if response.status_code != 200:
