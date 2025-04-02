@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, ValidationInfo
 from typing import Optional
 from datetime import datetime
 
@@ -39,8 +39,8 @@ class ForgotPassword(BaseModel):
 
     @field_validator('confirm_password')
     @classmethod
-    def passwords_match(cls, v: str, values: dict) -> str:
-        if values.get('new_password') and v != values['new_password']:
+    def passwords_match(cls, v: str, info: ValidationInfo) -> str:
+        if "new_password" in info.data and v != info.data["new_password"]:
             raise ValueError('Las contraseñas no coinciden')
         return v
 
