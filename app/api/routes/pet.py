@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from app.services.pet_service import create_pet, get_pet, delete_pet, assign_pet
+from app.services.pet_service import create_pet, get_pet, delete_pet, assign_pet, get_pets
 from app.services.qr_service import validate_qr
 from app.models.pet import PetCreateRequest
 from app.models.pet import PetResponse
 from app.models.assign_pet_request import AssignPetRequest
+from typing import List
 
 router = APIRouter()
 
@@ -14,6 +15,15 @@ def create(pet: PetCreateRequest):
     - **pet**: Información de la mascota a crear.
     """
     return create_pet(pet)
+
+
+@router.get("/get", summary="Obtener información de mascotas", description="Este endpoint obtiene todas la información de las mascotas", response_model=List[PetResponse])
+def get():
+    """
+    Obtiene la información de una mascota a través de su ID.
+    - **pet_id**: El ID único de la mascota.
+    """
+    return get_pets()
 
 @router.get("/get/{pet_id}", summary="Obtener información de una mascota", description="Este endpoint obtiene la información de una mascota usando su ID", response_model=PetResponse)
 def get(pet_id: str):

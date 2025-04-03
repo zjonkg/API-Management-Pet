@@ -28,6 +28,15 @@ def get_pet(pet_id):
 
     return response.data[0]
 
+def get_pets():
+    """Obtiene una mascota por su ID."""
+    response = supabase.table("virtual_pets").select("*").execute()
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Pet not found")
+
+    return response.data
+
 def get_pet_by_qr(qr_code):
     """Obtiene una mascota por su código QR."""
     response = supabase.table("virtual_pets").select("*").eq("qr", qr_code).execute()
