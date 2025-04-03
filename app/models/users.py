@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, field_validator, ValidationInfo
 from typing import Optional
 from datetime import datetime
+import bcrypt
 
 class User(BaseModel):
     username: str
@@ -57,3 +58,10 @@ class UserResponse(BaseModel):
     class Config:
         # Esto asegura que aunque el modelo ORM tenga más campos, solo se devuelvan estos
         orm_mode = True
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())

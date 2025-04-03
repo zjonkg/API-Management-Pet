@@ -19,6 +19,7 @@ async def get_user(id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
+
 @router.post("/singup")
 async def create_user(user: UserAll):
     """
@@ -33,6 +34,22 @@ async def create_user(user: UserAll):
     if response.status_code != 201:
         raise HTTPException(status_code=400, detail="Error creating user")
     return response.data[0]
+
+@router.post("/login2")
+async def login(user: LoginRequest):
+
+    response = supabase.table("users").select("*").eq("email", user.email).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+
+    user_data = response.data[0]  
+ 
+    if not verify_password(user.password, user_data["password"]):
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+
+    return {"message": "Inicio de sesión exitoso"}
+
 
 @router.post("/login", response_model=UserResponse)
 async def login_user(user: UserLogin):
