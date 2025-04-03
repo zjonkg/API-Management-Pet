@@ -25,7 +25,11 @@ async def create_user(user: UserAll):
     Crea un nuevo usuario.
     - **pet**: Información del usuario a crear.
     """
-    response = supabase.table("users").insert(user).execute()
+
+    user_data = user.dict()
+    user_data["password"] = hash_password(user_data["password"])
+
+    response = supabase.table("users").insert(user_data).execute()
     if response.status_code != 201:
         raise HTTPException(status_code=400, detail="Error creating user")
     return response.data[0]
@@ -51,6 +55,16 @@ async def login_user(user: UserLogin):
             detail=f"Error en el servidor: {str(e)}"
         )
 
+@router.post("/achievements/{username}/{achievement_id}")
+async def award_achievement(user: str, achievement_id: int):
+    response_achievements = supabase.table("achievements").select("id").eq("id", achievement_id).execute()
+    response_user = supabase.table("users").select("id").eq("username", user).execute()
+
+    insert_responses = supabase.table("user_achievements").insert({
+        "id_user": response_user.data[0]["id"],
+        "id_achievement": response_achievements.data[0]["id"]
+    }).execute()
+    return insert_responses
 
 @router.put(
     "/forgot-password",

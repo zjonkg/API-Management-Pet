@@ -5,6 +5,7 @@ class Employee(BaseModel):
     name: str
     first_surname: str
     email: EmailStr
+    password: str
     phone_number: str
     role: int
 
@@ -13,3 +14,7 @@ class EmployeeAll(Employee):
     second_surname: str
     birthdate: str
     address: str
+
+class EmployeeLogin(BaseModel):
+    email: EmailStr
+    password: str
