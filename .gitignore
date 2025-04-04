@@ -23,6 +23,8 @@ docs.zip
 archive.zip
 __pycache__/
 app/core/config.py
+config.py
+
 
 # vim temporary files
 *~
