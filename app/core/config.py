@@ -1,11 +1,14 @@
 import os
 from dotenv import load_dotenv
+import asyncpg
 
 # Cargar variables desde el archivo .env
 load_dotenv()
 
 # Obtener las credenciales
 SUPABASE_URL = os.getenv("SUPABASE_URL")
+async def connect_db():
+    return await asyncpg.connect(SUPABASE_URL)
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Verificar si las credenciales están correctamente cargadas
