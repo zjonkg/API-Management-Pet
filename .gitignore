@@ -22,6 +22,7 @@ venv
 docs.zip
 archive.zip
 __pycache__/
+app/core/config.py
 
 # vim temporary files
 *~
