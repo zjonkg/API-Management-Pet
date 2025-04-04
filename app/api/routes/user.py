@@ -20,7 +20,7 @@ async def get_user(id: int):
     return response.data[0]
 
 
-@router.post("/singup")
+@router.post("/signup")
 async def create_user(user: UserAll):
     """
     Crea un nuevo usuario.
@@ -146,7 +146,7 @@ async def forgot_password(email: str, user_data: ForgotPassword):
 @router.put("/{id}")
 async def update_user(id: str, user: dict):
     response = supabase.table("users").update(user).eq("id", id).execute()
-    if response.status_code != 200:
+    if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data[0]
 
