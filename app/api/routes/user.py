@@ -31,8 +31,6 @@ async def create_user(user: UserAll):
     user_data["password"] = hash_password(user_data["password"])
 
     response = supabase.table("users").insert(user_data).execute()
-    if response.status_code != 201:
-        raise HTTPException(status_code=400, detail="Error creating user")
     return response.data[0]
 
 @router.post("/login2")
