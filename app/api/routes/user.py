@@ -153,6 +153,6 @@ async def update_user(id: str, user: dict):
 @router.delete("/{id}")
 async def delete_user(id: str):
     response = supabase.table("users").delete().eq("id", id).execute()
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Error deleting user")
-    return {"detail": "User deleted successfully"}
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return response.data
