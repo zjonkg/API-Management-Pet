@@ -33,7 +33,7 @@ async def create_user(user: UserAll):
     response = supabase.table("users").insert(user_data).execute()
     return response.data[0]
 
-@router.post("/login2")
+@router.post("/login")
 async def login(user: LoginRequest):
 
     response = supabase.table("users").select("*").eq("email", user.email).execute()
@@ -48,27 +48,6 @@ async def login(user: LoginRequest):
 
     return {"message": "Inicio de sesión exitoso"}
 
-
-@router.post("/login", response_model=UserResponse)
-async def login_user(user: UserLogin):
-    try:
-        response = supabase.table("users").select("*").eq("email", user.email).execute()
-        
-        if not response.data:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Credenciales inválidas"
-            )
-            
-        user_data = response.data[0]
-        
-        return user_data 
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error en el servidor: {str(e)}"
-        )
 
 @router.post("/achievements/{username}/{achievement_id}")
 async def award_achievement(user: str, achievement_id: int):
