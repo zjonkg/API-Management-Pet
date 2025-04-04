@@ -79,6 +79,9 @@ async def award_achievement(user: str, achievement_id: int):
         "id_user": response_user.data[0]["id"],
         "id_achievement": response_achievements.data[0]["id"]
     }).execute()
+
+    if insert_responses.count == None:
+        raise HTTPException(status_code=400, detail="Error al insertar el logro")
     return insert_responses
 
 @router.put(
