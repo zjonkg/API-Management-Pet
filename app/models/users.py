@@ -56,7 +56,6 @@ class UserResponse(BaseModel):
     is_active: Optional[bool] = True
     
     class Config:
-        # Esto asegura que aunque el modelo ORM tenga más campos, solo se devuelvan estos
         orm_mode = True
 
 class LoginRequest(BaseModel):

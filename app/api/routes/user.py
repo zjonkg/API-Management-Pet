@@ -7,19 +7,24 @@ from app.services.hashed_password import hash_password
 
 router = APIRouter()
 
+# Obtener todos los usuarios de la BBDD
 @router.get("/")
 async def get_users():
     response = supabase.table("users").select("*").execute()
+    for user in response.data:
+        del user["password"]
     return response.data
 
+# Obtener un usuario por ID
 @router.get("/{id}")
 async def get_user(id: int):
     response = supabase.table("users").select("*").eq("id", id).execute()
+    del response.data[0]["password"]
     if not response.data:
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
-
+# Crear usuario
 @router.post("/singup")
 async def create_user(user: UserAll):
     """
@@ -31,9 +36,10 @@ async def create_user(user: UserAll):
     user_data["password"] = hash_password(user_data["password"])
 
     response = supabase.table("users").insert(user_data).execute()
-    return response.data[0]
+    return {"message": "Usuario creado exitosamente"}
 
-@router.post("/login2")
+# Loging de usuario
+@router.post("/login")
 async def login(user: LoginRequest):
 
     response = supabase.table("users").select("*").eq("email", user.email).execute()
@@ -48,38 +54,23 @@ async def login(user: LoginRequest):
 
     return {"message": "Inicio de sesión exitoso"}
 
-
-@router.post("/login", response_model=UserResponse)
-async def login_user(user: UserLogin):
-    try:
-        response = supabase.table("users").select("*").eq("email", user.email).execute()
-        
-        if not response.data:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Credenciales inválidas"
-            )
-            
-        user_data = response.data[0]
-        
-        return user_data 
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error en el servidor: {str(e)}"
-        )
-
+# Añadir el logro al la tabla de logros conseguidos junto el update del balace del usuario
 @router.post("/achievements/{username}/{achievement_id}")
 async def award_achievement(user: str, achievement_id: int):
-    response_achievements = supabase.table("achievements").select("id").eq("id", achievement_id).execute()
-    response_user = supabase.table("users").select("id").eq("username", user).execute()
+    response_achievements = supabase.table("achievements").select("id, reward_coins").eq("id", achievement_id).execute()
+    response_user = supabase.table("users").select("id, balance").eq("username", user).execute()
+
+    new_coins = response_achievements.data[0]["reward_coins"] + response_user.data[0]["balance"]
+
+    insert_coins = supabase.table("users").update({
+        "balance": new_coins,
+    }).eq("username", user).execute()
 
     insert_responses = supabase.table("user_achievements").insert({
         "id_user": response_user.data[0]["id"],
         "id_achievement": response_achievements.data[0]["id"]
     }).execute()
-    return insert_responses
+    return insert_responses, insert_coins
 
 @router.put(
     "/forgot-password",
@@ -144,7 +135,7 @@ async def forgot_password(email: str, user_data: ForgotPassword):
         )
 
 @router.put("/{id}")
-async def update_user(id: str, user: dict):
+async def update_user(id: str, user: UserAll):
     response = supabase.table("users").update(user).eq("id", id).execute()
     if response.status_code != 200:
         raise HTTPException(status_code=400, detail="Error updating user")
