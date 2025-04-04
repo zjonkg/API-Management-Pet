@@ -5,7 +5,7 @@ import bcrypt
 
 class User(BaseModel):
     username: str
-    email: str 
+    email: EmailStr 
     password: str
 
 class UserAll(User):
