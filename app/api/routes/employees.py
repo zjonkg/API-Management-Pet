@@ -36,16 +36,16 @@ async def create_employee(employee: EmployeeAll):
 
 # login
 @router.post("/login")
-async def login(user: LoginRequest):
+async def login(employee: LoginRequest):
 
-    response = supabase.table("employees").select("*").eq("email", user.email).execute()
+    response = supabase.table("employees").select("*").eq("email", employee.email).execute()
 
     if not response.data:
         raise HTTPException(status_code=400, detail="Usuario no encontrado")
 
-    user_data = response.data[0]  
+    employee_data = response.data[0]  
  
-    if not verify_password(user.password, user_data["password"]):
+    if not verify_password(employee.password, employee_data["password"]):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
     return {"message": "Inicio de sesión exitoso"}

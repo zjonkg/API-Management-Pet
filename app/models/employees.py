@@ -15,6 +15,6 @@ class EmployeeAll(Employee):
     birthdate: str
     address: str
 
-class EmployeeLogin(BaseModel):
-    email: EmailStr
+class LoginRequest(BaseModel):
+    email: str
     password: str
