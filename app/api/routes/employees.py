@@ -30,7 +30,7 @@ async def create_employee(employee: EmployeeAll):
     employee_data["password"] = hash_password(employee_data["password"])
 
     response = supabase.table("employees").insert(employee_data).execute()
-    if response.status_code != 201:
+    if response.data is None:
         raise HTTPException(status_code=400, detail="Error creating employee")
     return response.json()
 
@@ -41,3 +41,5 @@ async def login(email: str, password: str):
 
     if verify_password(password, response):
         return {"message": "Login successful"}
+
+    return {"message": "Login failed"}
