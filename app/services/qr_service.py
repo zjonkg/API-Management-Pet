@@ -40,4 +40,3 @@ def validate_qr(content: str) -> dict:
             return {"valid": False, "message": "QR inválido"}
     except ValueError:
         return {"valid": False, "message": "Formato incorrecto"}
-

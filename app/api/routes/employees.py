@@ -32,7 +32,7 @@ async def create_employee(employee: EmployeeAll):
     response = supabase.table("employees").insert(employee_data).execute()
     if response.data is None:
         raise HTTPException(status_code=400, detail="Error creating employee")
-    return response.json()
+    return response.data
 
 # login
 @router.post("/login")
