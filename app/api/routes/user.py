@@ -4,6 +4,7 @@ from app.models.users import *
 from app.core.database import supabase
 from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password
+from datetime import datetime, timedelta
 
 router = APIRouter()
 
@@ -72,16 +73,50 @@ async def award_achievement(user: str, achievement_id: int):
     }).execute()
     return insert_responses, insert_coins
 
-@router.put(
-    "/forgot-password",
-    status_code=status.HTTP_200_OK,
-    responses={
-        200: {"description": "Contraseña cambiada exitosamente"},
-        400: {"description": "Las contraseñas no coinciden o el usuario no existe"},
-        404: {"description": "Usuario no encontrado"},
-        500: {"description": "Error del servidor al actualizar la contraseña"}
-    }
-)
+@router.put("/last_conection/{id}")
+async def last_conection(user: int):
+    """
+    Actualiza la fecha de la última conexión del usuario.
+    
+    Parámetros:
+    - id: Id de usuario
+    """
+    response = supabase.table("users").update({"last_conection": "now()"}).eq("id", user).execute()
+    
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    return {"message": "Última conexión actualizada exitosamente"}
+
+@router.put("/day_streak/{id}")
+async def set_day_streak(user: int):
+    """
+    Actualiza la racha de días del usuario.
+    
+    Parámetros:
+    - id: Id de usuario
+    """
+    response = supabase.table("users").select("day_streak, last_conection").eq("id", user).execute()
+    
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    user_streak = response.data[0]
+    user_time = datetime.strptime(user_streak["last_conection"], "%Y-%m-%d")
+    time = datetime.now()
+
+    last_conect = user_time - time
+    
+    # Actualizar la racha de días
+    if last_conect > timedelta(hours=24) and last_conect < timedelta(hours=48):
+        new_streak = user_streak["day_streak"] + 1
+        update_response = supabase.table("users").update({"day_streak": new_streak}).eq("id", user).execute()
+        return {"message": "Racha de días actualizada exitosamente"}
+    else: 
+        return {"message": "No se ha podido actualizar la racha de días"}
+    
+
+@router.put("/forgot-password")
 async def forgot_password(email: str, user_data: ForgotPassword):
     """
     Cambia la contraseña de un usuario olvidada.

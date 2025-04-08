@@ -3,6 +3,9 @@ from typing import Optional
 from datetime import datetime
 import bcrypt
 
+class User_id():
+    id: int
+
 class User(BaseModel):
     username: str
     email: EmailStr 

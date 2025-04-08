@@ -1,5 +1,8 @@
 import os
 import asyncpg
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Obtener las credenciales
 SUPABASE_URL = os.getenv("SUPABASE_URL")

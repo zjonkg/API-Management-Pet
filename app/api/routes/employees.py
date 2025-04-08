@@ -19,7 +19,6 @@ async def get_employees(id: int):
     response = supabase.table("employees").select("*").eq("id", id).execute()
     return response.data
 
-# registros
 @router.post("/singup")
 async def create_employee(employee: EmployeeAll):
     """
@@ -34,7 +33,6 @@ async def create_employee(employee: EmployeeAll):
         raise HTTPException(status_code=400, detail="Error creating employee")
     return response.json()
 
-# login
 @router.post("/login")
 async def login(email: str, password: str):
     response = supabase.table("employees").select("password").eq("email", email).execute()
