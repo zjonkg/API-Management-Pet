@@ -3,6 +3,9 @@ from typing import Optional
 from datetime import datetime
 import bcrypt
 
+class User_id():
+    id: int
+
 class User(BaseModel):
     username: str
     email: EmailStr 
@@ -56,7 +59,6 @@ class UserResponse(BaseModel):
     is_active: Optional[bool] = True
     
     class Config:
-        # Esto asegura que aunque el modelo ORM tenga más campos, solo se devuelvan estos
         orm_mode = True
 
 class LoginRequest(BaseModel):

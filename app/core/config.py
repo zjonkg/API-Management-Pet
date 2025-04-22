@@ -2,7 +2,10 @@ import os
 import asyncpg
 from dotenv import load_dotenv
 
+<<<<<<< HEAD
+=======
 # Cargar las variables de entorno desde un archivo .env
+>>>>>>> 013214a355a2a2d8d11c81566b2c6b0da385f002
 load_dotenv()
 
 # Obtener las credenciales

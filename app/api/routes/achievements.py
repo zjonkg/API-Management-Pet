@@ -23,3 +23,13 @@ async def get_achievement(id: int):
     if not response.data:
         raise HTTPException(status_code=404, detail="Achievement not found")
     return response.data
+
+@router.get("/user/{user_id}")
+async def get_user_achievements(user_id: int):
+    """
+    Get achievements by user id
+    """
+    response = supabase.from_("user_achievements").select("*").eq("id_user", user_id).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Achievements not found")
+    return response.data
