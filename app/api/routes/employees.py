@@ -29,13 +29,21 @@ async def create_employee(employee: EmployeeAll):
     employee_data["password"] = hash_password(employee_data["password"])
 
     response = supabase.table("employees").insert(employee_data).execute()
-    if response.status_code != 201:
+    if response.data is None:
         raise HTTPException(status_code=400, detail="Error creating employee")
-    return response.json()
+    return response.data
 
 @router.post("/login")
-async def login(email: str, password: str):
-    response = supabase.table("employees").select("password").eq("email", email).execute()
+async def login(employee: LoginRequest):
 
-    if verify_password(password, response):
-        return {"message": "Login successful"}
+    response = supabase.table("employees").select("*").eq("email", employee.email).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+
+    employee_data = response.data[0]  
+ 
+    if not verify_password(employee.password, employee_data["password"]):
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+
+    return {"message": "Inicio de sesión exitoso"}

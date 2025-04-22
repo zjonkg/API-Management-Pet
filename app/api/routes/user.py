@@ -55,7 +55,6 @@ async def login(user: LoginRequest):
 
     return {"id": response.data[0]["id"]}
 
-# Añadir el logro al la tabla de logros conseguidos junto el update del balace del usuario
 @router.post("/achievements/{username}/{achievement_id}")
 async def award_achievement(user: str, achievement_id: int):
     response_achievements = supabase.table("achievements").select("id, reward_coins").eq("id", achievement_id).execute()
@@ -184,13 +183,13 @@ async def forgot_password(email: str, user_data: ForgotPassword):
 @router.put("/{id}")
 async def update_user(id: str, user: UserAll):
     response = supabase.table("users").update(user).eq("id", id).execute()
-    if response.status_code != 200:
+    if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data[0]
 
 @router.delete("/{id}")
 async def delete_user(id: str):
     response = supabase.table("users").delete().eq("id", id).execute()
-    if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Error deleting user")
-    return {"detail": "User deleted successfully"}
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return response.data
