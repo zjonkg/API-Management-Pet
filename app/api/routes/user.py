@@ -4,7 +4,7 @@ from app.models.users import *
 from app.core.database import supabase
 from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -53,13 +53,13 @@ async def login(user: LoginRequest):
     if not verify_password(user.password, user_data["password"]):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-    return {"message": "Inicio de sesión exitoso"}
+    return {"id": response.data[0]["id"]}
 
 # Añadir el logro al la tabla de logros conseguidos junto el update del balace del usuario
 @router.post("/achievements/{username}/{achievement_id}")
 async def award_achievement(user: str, achievement_id: int):
     response_achievements = supabase.table("achievements").select("id, reward_coins").eq("id", achievement_id).execute()
-    response_user = supabase.table("users").select("id, balance").eq("username", user).execute()
+    response_user = supabase.table("users").select("id, balance, day_streak, created_at").eq("username", user).execute()
 
     new_coins = response_achievements.data[0]["reward_coins"] + response_user.data[0]["balance"]
 
@@ -71,7 +71,8 @@ async def award_achievement(user: str, achievement_id: int):
         "id_user": response_user.data[0]["id"],
         "id_achievement": response_achievements.data[0]["id"]
     }).execute()
-    return insert_responses, insert_coins
+
+    return {"message": "Logro añadido correctamente"}
 
 @router.put("/last_conection/{id}")
 async def last_conection(user: int):
@@ -90,31 +91,42 @@ async def last_conection(user: int):
 
 @router.put("/day_streak/{id}")
 async def set_day_streak(user: int):
-    """
-    Actualiza la racha de días del usuario.
-    
-    Parámetros:
-    - id: Id de usuario
-    """
+    # Obtener datos del usuario
     response = supabase.table("users").select("day_streak, last_conection").eq("id", user).execute()
     
     if not response.data:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     user_streak = response.data[0]
-    user_time = datetime.strptime(user_streak["last_conection"], "%Y-%m-%d")
-    time = datetime.now()
+    last_conection = user_streak["last_conection"]
 
-    last_conect = user_time - time
-    
-    # Actualizar la racha de días
-    if last_conect > timedelta(hours=24) and last_conect < timedelta(hours=48):
+    # Parsear la fecha (maneja timestamp numérico o string ISO)
+    try:
+        if isinstance(last_conection, (int, float)):
+            user_time = datetime.fromtimestamp(last_conection, timezone.utc)
+        elif isinstance(last_conection, str):
+            user_time = datetime.fromisoformat(last_conection)  # Acepta zonas horarias
+            if user_time.tzinfo is None:
+                user_time = user_time.replace(tzinfo=timezone.utc)  # Hacerla aware
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al parsear la fecha: {e}")
+
+    time_now = datetime.now(timezone.utc)  # Fecha actual con zona horaria
+    time_diff = time_now - user_time  # Ahora es válido
+
+    # Lógica de racha
+    if time_diff <= timedelta(hours=24):
         new_streak = user_streak["day_streak"] + 1
-        update_response = supabase.table("users").update({"day_streak": new_streak}).eq("id", user).execute()
-        return {"message": "Racha de días actualizada exitosamente"}
-    else: 
-        return {"message": "No se ha podido actualizar la racha de días"}
+    else:
+        new_streak = 1
+
+    # Actualizar en Supabase (guarda como string ISO)
+    update_response = supabase.table("users").update({
+        "day_streak": new_streak,
+        "last_conection": time_now.isoformat()  # Guarda con zona horaria
+    }).eq("id", user).execute()
     
+    return {"message": f"Racha actualizada a {new_streak} días"}
 
 @router.put("/forgot-password")
 async def forgot_password(email: str, user_data: ForgotPassword):

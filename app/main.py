@@ -4,6 +4,7 @@ from app.api.routes import db
 from app.api.routes import user
 from app.api.routes import employees
 from app.api.routes import achievements
+from app.api.routes import ranking
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -21,6 +22,7 @@ app.include_router(user.router, prefix="/user", tags=["Users"])  # Ruta original
 app.include_router(db.router, prefix="/ds", tags=["Database"])  # Nueva ruta
 app.include_router(employees.router, prefix="/employees", tags=["Employees"])
 app.include_router(achievements.router, prefix="/achievements", tags=["Achievements"])
+app.include_router(ranking.router, prefix="/ranking", tags=["Ranking"])
 
 @app.get("/")
 def home():

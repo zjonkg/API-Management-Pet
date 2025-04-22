@@ -6,7 +6,7 @@ class RankingAchievements(BaseModel):
     Modelo para ranking de usuarios.
     """
     username: str
-    id_achievements: int
+    achievements: int
 
 class RankingTime(BaseModel):
     """
@@ -21,3 +21,9 @@ class RankingMoreDays(BaseModel):
     """
     username: str
     days: str
+
+class RankingAll():
+    username: str
+    achievements: int
+    time: str
+    days: int
