@@ -4,6 +4,7 @@ from app.models.users import *
 from app.core.database import supabase
 from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password
+from app.services.token import create_access_token
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
@@ -36,8 +37,14 @@ async def create_user(user: UserAll):
     user_data = user.dict()
     user_data["password"] = hash_password(user_data["password"])
 
+    create_access_token(user_data)
+
     response = supabase.table("users").insert(user_data).execute()
-    return {"message": "Usuario creado exitosamente"}
+
+    return {
+        "message": "Usuario creado exitosamente",
+        
+        }
 
 # Loging de usuario
 @router.post("/login")
@@ -90,7 +97,6 @@ async def last_conection(user: int):
 
 @router.put("/day_streak/{id}")
 async def set_day_streak(user: int):
-    # Obtener datos del usuario
     response = supabase.table("users").select("day_streak, last_conection").eq("id", user).execute()
     
     if not response.data:
@@ -99,19 +105,18 @@ async def set_day_streak(user: int):
     user_streak = response.data[0]
     last_conection = user_streak["last_conection"]
 
-    # Parsear la fecha (maneja timestamp numérico o string ISO)
     try:
         if isinstance(last_conection, (int, float)):
             user_time = datetime.fromtimestamp(last_conection, timezone.utc)
         elif isinstance(last_conection, str):
-            user_time = datetime.fromisoformat(last_conection)  # Acepta zonas horarias
+            user_time = datetime.fromisoformat(last_conection) 
             if user_time.tzinfo is None:
-                user_time = user_time.replace(tzinfo=timezone.utc)  # Hacerla aware
+                user_time = user_time.replace(tzinfo=timezone.utc)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error al parsear la fecha: {e}")
 
-    time_now = datetime.now(timezone.utc)  # Fecha actual con zona horaria
-    time_diff = time_now - user_time  # Ahora es válido
+    time_now = datetime.now(timezone.utc)
+    time_diff = time_now - user_time
 
     # Lógica de racha
     if time_diff <= timedelta(hours=24):
@@ -119,10 +124,9 @@ async def set_day_streak(user: int):
     else:
         new_streak = 1
 
-    # Actualizar en Supabase (guarda como string ISO)
     update_response = supabase.table("users").update({
         "day_streak": new_streak,
-        "last_conection": time_now.isoformat()  # Guarda con zona horaria
+        "last_conection": time_now.isoformat()
     }).eq("id", user).execute()
     
     return {"message": f"Racha actualizada a {new_streak} días"}

@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Request, Response
+from fastapi import APIRouter, HTTPException
 import supabase
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from app.models.achievements import *
 from app.core.database import supabase
 
