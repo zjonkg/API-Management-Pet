@@ -193,3 +193,12 @@ async def delete_user(id: str):
     if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data
+
+@router.get("items/{user_id}")
+async def get_user_items(user_id: int) -> dict:
+    try:
+        response = supabase.rpc("get_users_items", {"p_user_id": user_id}).execute()
+        return {"items": response.data}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener los ítems: {e}")
