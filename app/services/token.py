@@ -1,6 +1,5 @@
 from jose import jwt
 import secrets
-import base64
 
 def create_access_token(data: dict):
     to_encode = data.copy()

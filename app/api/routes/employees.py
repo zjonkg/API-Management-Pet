@@ -10,6 +10,9 @@ security = HTTPBasic()
 
 @router.get("/")
 async def get_employees():
+    """
+    Obtener todos los empleados.
+    """
     response = supabase.table("employees").select("*").execute()
     return response.data
 
@@ -34,7 +37,9 @@ async def create_employee(employee: EmployeeAll):
 
 @router.post("/login")
 async def login(employee: LoginRequest):
-
+    """
+    Iniciar sesion como empleado.
+    """
     response = supabase.table("employees").select("*").eq("email", employee.email).execute()
 
     if not response.data:

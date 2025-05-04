@@ -43,7 +43,7 @@ async def create_user(user: UserAll):
 
     return {
         "message": "Usuario creado exitosamente",
-        
+        "token": create_access_token(user_data)
         }
 
 # Loging de usuario
@@ -190,6 +190,17 @@ async def update_user(id: str, user: UserAll):
     if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data[0]
+
+@router.put("/update_balance/{id}/{coins}")
+async def update_balance(id: int, coins: int):
+    response = supabase.table("users").select("balance").eq("id", id).execute()
+
+    new_value = response.data[0]["balance"] + coins
+
+    supabase.table("users").update({"balance": new_value}).eq("id", id).execute()
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return {"message": "Balance updated successfully"}
 
 @router.delete("/{id}")
 async def delete_user(id: str):
