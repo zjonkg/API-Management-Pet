@@ -53,7 +53,10 @@ async def login(user: LoginRequest):
     if not verify_password(user.password, user_data["password"]):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-    return {"id": response.data[0]["id"]}
+    return {
+    "id": response.data[0]["id"],
+    "has_mascot": response.data[0]["has_mascot"]}
+
 
 @router.post("/achievements/{username}/{achievement_id}")
 async def award_achievement(user: str, achievement_id: int):
