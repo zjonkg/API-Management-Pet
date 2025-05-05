@@ -7,7 +7,7 @@ class Item(BaseModel):
     description: str
 
 class ItemBuy(BaseModel):
-    name: str
+    id: int
     quantity: int
     price: int
     totalPrice: int
