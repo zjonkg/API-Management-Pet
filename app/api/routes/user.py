@@ -26,6 +26,22 @@ async def get_user(id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
+@router.get("/{id}/{token}")
+async def access_token(id: int, token: str):
+    """
+    Verifica el token de acceso del usuario.
+    
+    Parámetros:
+    - id: Id de usuario
+    - token: Token de acceso
+    """
+    response = supabase.table("users").select("*").eq("id", id).eq("token_access", token).execute()
+    
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Token no válido")
+    
+    return {"message": "Token válido"}
+
 # Crear usuario
 @router.post("/singup")
 async def create_user(user: UserAll):
@@ -36,14 +52,15 @@ async def create_user(user: UserAll):
 
     user_data = user.dict()
     user_data["password"] = hash_password(user_data["password"])
-
-    create_access_token(user_data)
+    token = create_access_token(user_data)
+    user_data["token_access"] = token
 
     response = supabase.table("users").insert(user_data).execute()
+    token_response = supabase.table("users_token").insert(token).execute()
 
     return {
         "message": "Usuario creado exitosamente",
-        "token": create_access_token(user_data)
+        "token": token
         }
 
 # Loging de usuario
@@ -205,6 +222,13 @@ async def update_balance(id: int, coins: int):
 @router.delete("/{id}")
 async def delete_user(id: str):
     response = supabase.table("users").delete().eq("id", id).execute()
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return response.data
+
+@router.delete("/delete/token/{id}")
+async def delete_token(id: str):
+    response = supabase.table("users").update({"token_access": None}).eq("id", id).execute()
     if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data
