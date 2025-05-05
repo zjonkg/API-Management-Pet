@@ -51,7 +51,6 @@ async def buy_item(item: BuyItems):
     else:
         new_balance = response_user.data[0]["balance"] - item.totalPrice
         supabase.table("users").update({"balance": new_balance}).eq("id", item.user).execute()
-        #supabase.table("user_items").insert(item.item).execute()
         for i in item.item:
             supabase.table("user_items").update({"quantity": i.quantity}).eq("id_item", i.id).execute()
         return {"message": "Item bought successfully"}
