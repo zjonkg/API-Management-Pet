@@ -4,6 +4,7 @@ from app.models.users import *
 from app.core.database import supabase
 from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password
+from app.services.token import create_access_token
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
@@ -25,6 +26,22 @@ async def get_user(id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
+@router.get("/{id}/{token}")
+async def access_token(id: int, token: str):
+    """
+    Verifica el token de acceso del usuario.
+    
+    Parámetros:
+    - id: Id de usuario
+    - token: Token de acceso
+    """
+    response = supabase.table("users").select("*").eq("id", id).eq("token_access", token).execute()
+    
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Token no válido")
+    
+    return {"message": "Token válido"}
+
 # Crear usuario
 @router.post("/singup")
 async def create_user(user: UserAll):
@@ -35,9 +52,16 @@ async def create_user(user: UserAll):
 
     user_data = user.dict()
     user_data["password"] = hash_password(user_data["password"])
+    token = create_access_token(user_data)
+    user_data["token_access"] = token
 
     response = supabase.table("users").insert(user_data).execute()
-    return {"message": "Usuario creado exitosamente"}
+    token_response = supabase.table("users_token").insert(token).execute()
+
+    return {
+        "message": "Usuario creado exitosamente",
+        "token": token
+        }
 
 # Loging de usuario
 @router.post("/login")
@@ -93,7 +117,6 @@ async def last_conection(user: int):
 
 @router.put("/day_streak/{id}")
 async def set_day_streak(user: int):
-    # Obtener datos del usuario
     response = supabase.table("users").select("day_streak, last_conection").eq("id", user).execute()
     
     if not response.data:
@@ -102,19 +125,18 @@ async def set_day_streak(user: int):
     user_streak = response.data[0]
     last_conection = user_streak["last_conection"]
 
-    # Parsear la fecha (maneja timestamp numérico o string ISO)
     try:
         if isinstance(last_conection, (int, float)):
             user_time = datetime.fromtimestamp(last_conection, timezone.utc)
         elif isinstance(last_conection, str):
-            user_time = datetime.fromisoformat(last_conection)  # Acepta zonas horarias
+            user_time = datetime.fromisoformat(last_conection) 
             if user_time.tzinfo is None:
-                user_time = user_time.replace(tzinfo=timezone.utc)  # Hacerla aware
+                user_time = user_time.replace(tzinfo=timezone.utc)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error al parsear la fecha: {e}")
 
-    time_now = datetime.now(timezone.utc)  # Fecha actual con zona horaria
-    time_diff = time_now - user_time  # Ahora es válido
+    time_now = datetime.now(timezone.utc)
+    time_diff = time_now - user_time
 
     # Lógica de racha
     if time_diff <= timedelta(hours=24):
@@ -122,10 +144,9 @@ async def set_day_streak(user: int):
     else:
         new_streak = 1
 
-    # Actualizar en Supabase (guarda como string ISO)
     update_response = supabase.table("users").update({
         "day_streak": new_streak,
-        "last_conection": time_now.isoformat()  # Guarda con zona horaria
+        "last_conection": time_now.isoformat()
     }).eq("id", user).execute()
     
     return {"message": f"Racha actualizada a {new_streak} días"}
@@ -190,9 +211,27 @@ async def update_user(id: str, user: UserAll):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data[0]
 
+@router.put("/update_balance/{id}/{coins}")
+async def update_balance(id: int, coins: int):
+    response = supabase.table("users").select("balance").eq("id", id).execute()
+
+    new_value = response.data[0]["balance"] + coins
+
+    supabase.table("users").update({"balance": new_value}).eq("id", id).execute()
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return {"message": "Balance updated successfully"}
+
 @router.delete("/{id}")
 async def delete_user(id: str):
     response = supabase.table("users").delete().eq("id", id).execute()
+    if (response.count == None):
+        raise HTTPException(status_code=400, detail="Error updating user")
+    return response.data
+
+@router.delete("/delete/token/{id}")
+async def delete_token(id: str):
+    response = supabase.table("users").update({"token_access": None}).eq("id", id).execute()
     if (response.count == None):
         raise HTTPException(status_code=400, detail="Error updating user")
     return response.data

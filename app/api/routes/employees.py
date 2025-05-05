@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Request, Response
+from fastapi import APIRouter, HTTPException
 import supabase
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBasic
 from app.models.employees import *
 from app.core.database import supabase
-from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password, verify_password
 
 router = APIRouter()
@@ -11,6 +10,9 @@ security = HTTPBasic()
 
 @router.get("/")
 async def get_employees():
+    """
+    Obtener todos los empleados.
+    """
     response = supabase.table("employees").select("*").execute()
     return response.data
 
@@ -35,7 +37,9 @@ async def create_employee(employee: EmployeeAll):
 
 @router.post("/login")
 async def login(employee: LoginRequest):
-
+    """
+    Iniciar sesion como empleado.
+    """
     response = supabase.table("employees").select("*").eq("email", employee.email).execute()
 
     if not response.data:
@@ -47,3 +51,4 @@ async def login(employee: LoginRequest):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
     return {"message": "Inicio de sesión exitoso"}
+

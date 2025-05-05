@@ -21,13 +21,6 @@ class ChangePassword():
     confirm_password:str
 
 class ForgotPassword(BaseModel):
-    """
-    Modelo para el cambio de contraseña en caso de olvido.
-    
-    Campos requeridos:
-    - new_password: Nueva contraseña (mínimo 8 caracteres)
-    - confirm_password: Confirmación de la nueva contraseña
-    """
     new_password: str = Field(..., min_length=8, max_length=64, 
                               description="Nueva contraseña (mínimo 8 caracteres)")
     confirm_password: str = Field(..., description="Confirmación de la nueva contraseña")
