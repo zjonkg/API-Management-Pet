@@ -15,3 +15,4 @@ class ItemBuy(BaseModel):
 class BuyItems(BaseModel):
     user: int
     item: List[ItemBuy]
+    totalPrice: int

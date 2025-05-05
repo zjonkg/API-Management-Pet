@@ -46,9 +46,9 @@ async def eat(id_user: int, id_item: int):
 async def buy_item(item: BuyItems):
     response_user = supabase.table("users").select("id, balance").eq("id", item.user).execute()
 
-    if item.item["totalPrice"] > response_user.data["balance"]:
+    if item["totalPrice"] > response_user.data[0]["balance"]:
         raise HTTPException(status_code=400, detail="Insufficient balance")
     else:
-        new_balance = response_user.data["balance"] - item.item["totalPrice"]
+        new_balance = response_user.data[0]["balance"] - item["totalPrice"]
         supabase.table("users").update({"balance": new_balance}).eq("id", item.user).execute()
         return {"message": "Item bought successfully"}
