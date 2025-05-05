@@ -49,14 +49,13 @@ async def create_user(user: UserAll):
     Crea un nuevo usuario.
     - **pet**: Información del usuario a crear.
     """
-
     user_data = user.dict()
     user_data["password"] = hash_password(user_data["password"])
     token = create_access_token(user_data)
     user_data["token_access"] = token
 
     response = supabase.table("users").insert(user_data).execute()
-    token_response = supabase.table("users_token").insert(token).execute()
+    #token_response = supabase.table("users_token").insert(token).execute()
 
     return {
         "message": "Usuario creado exitosamente",
