@@ -6,9 +6,12 @@ from app.api.routes import employees
 from app.api.routes import achievements
 from app.api.routes import ranking
 from app.api.routes import items
+from app.api.routes import role
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# fastapi dev .\app\main.py
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +28,7 @@ app.include_router(employees.router, prefix="/employees", tags=["Employees"])
 app.include_router(achievements.router, prefix="/achievements", tags=["Achievements"])
 app.include_router(ranking.router, prefix="/ranking", tags=["Ranking"])
 app.include_router(items.router, prefix="/items", tags=["Items"])
+app.include_router(role.router, prefix="/role", tags=["Role"])
 
 @app.get("/")
 def home():

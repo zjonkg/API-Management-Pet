@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, status
 import supabase
 from app.models.users import *
 from app.core.database import supabase
-from app.services.supabase_service import test_db_connection
 from app.services.hashed_password import hash_password
 from app.services.token import create_access_token
 from datetime import datetime, timedelta, timezone
@@ -103,7 +102,6 @@ async def award_achievement(user: str, achievement_id: int):
 async def last_conection(user: int):
     """
     Actualiza la fecha de la última conexión del usuario.
-    
     Parámetros:
     - id: Id de usuario
     """
