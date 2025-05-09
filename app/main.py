@@ -7,6 +7,7 @@ from app.api.routes import achievements
 from app.api.routes import ranking
 from app.api.routes import items
 from app.api.routes import role
+from app.api.routes import play
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -29,6 +30,7 @@ app.include_router(achievements.router, prefix="/achievements", tags=["Achieveme
 app.include_router(ranking.router, prefix="/ranking", tags=["Ranking"])
 app.include_router(items.router, prefix="/items", tags=["Items"])
 app.include_router(role.router, prefix="/role", tags=["Role"])
+app.include_router(play.router, prefix="/play", tags=["Play"])
 
 @app.get("/")
 def home():
