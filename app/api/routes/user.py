@@ -54,7 +54,6 @@ async def create_user(user: UserAll):
     user_data["token_access"] = token
 
     response = supabase.table("users").insert(user_data).execute()
-    #token_response = supabase.table("users_token").insert(token).execute()
 
     return {
         "message": "Usuario creado exitosamente",
