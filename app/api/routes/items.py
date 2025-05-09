@@ -42,7 +42,11 @@ async def eat(id_user: int, id_item: int):
     supabase.table("user_items").update({"quantity": less_quatity}).eq("id_item", id_item).execute()
     return {"message": "Item eaten successfully"}
 
-@router.put("/buy")
+@router.put("/buy", responses={
+    400: {"description": "Datos inválidos o saldo insuficiente"},
+    404: {"description": "Usuario o item no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def buy_item(item: BuyItems):
     response_user = supabase.table("users").select("id, balance").eq("id", item.user).execute()
     

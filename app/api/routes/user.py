@@ -17,7 +17,11 @@ async def get_users():
     return response.data
 
 # Obtener un usuario por ID
-@router.get("/{id}")
+@router.get("/{id}", responses={
+    400: {"description": "Datos inválidos"},
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def get_user(id: int):
     response = supabase.table("users").select("*").eq("id", id).execute()
     del response.data[0]["password"]
@@ -42,7 +46,11 @@ async def access_token(id: int, token: str):
     return {"message": "Token válido"}
 
 # Crear usuario
-@router.post("/singup")
+@router.post("/singup", responses={
+    400: {"description": "Datos inválidos"},
+    401: {"description": "Contraseña incorrecta"},
+    500: {"description": "Error interno del servidor"}
+})
 async def create_user(user: UserAll):
     """
     Crea un nuevo usuario.
