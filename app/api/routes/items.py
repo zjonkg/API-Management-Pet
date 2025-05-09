@@ -45,12 +45,26 @@ async def eat(id_user: int, id_item: int):
 @router.put("/buy")
 async def buy_item(item: BuyItems):
     response_user = supabase.table("users").select("id, balance").eq("id", item.user).execute()
-
+    
+    if not response_user.data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     if item.totalPrice > response_user.data[0]["balance"]:
         raise HTTPException(status_code=400, detail="Insufficient balance")
-    else:
+    
+    try:
         new_balance = response_user.data[0]["balance"] - item.totalPrice
-        supabase.table("users").update({"balance": new_balance}).eq("id", item.user).execute()
+        update_balance = supabase.table("users").update({"balance": new_balance}).eq("id", item.user).execute()
+        
+        # Insertar cada ítem comprado
         for i in item.item:
-            supabase.table("user_items").update({"quantity": i.quantity}).eq("id_item", i.id).execute()
+            supabase.table("user_items").insert({
+                "id_user": item.user,
+                "id_item": i.id_item,   
+                "quantity": i.quantity
+            }).execute()
+            
         return {"message": "Item bought successfully"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
