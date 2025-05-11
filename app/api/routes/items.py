@@ -42,6 +42,19 @@ async def eat(id_user: int, id_item: int):
     supabase.table("user_items").update({"quantity": less_quatity}).eq("id_item", id_item).execute()
     return {"message": "Item eaten successfully"}
 
+@router.get("/user/{id_user}/items")
+async def get_user_items(id_user: int):
+    try:
+        response = supabase.rpc("get_users_items", {"p_user_id": id_user}).execute()
+
+        if not response.data:
+            raise HTTPException(status_code=404, detail="No items found for this user")
+
+        return response.data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving user items: {str(e)}")
+
 @router.put("/buy")
 async def buy_item(item: BuyItems):
     response_user = supabase.table("users").select("id, balance").eq("id", item.user).execute()

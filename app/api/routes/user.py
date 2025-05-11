@@ -26,6 +26,12 @@ async def get_user(id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
+# Obtener todos los items de un usuario
+@router.get("/user-items/{user_id}")
+async def get_user_items(user_id: int):
+    response = supabase.rpc("get_users_items", {"p_user_id": user_id}).execute()
+    return response.data 
+
 @router.get("/{id}/{token}")
 async def access_token(id: int, token: str):
     """
