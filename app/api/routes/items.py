@@ -11,6 +11,20 @@ async def get_items():
     
     return response.data
 
+@router.get("/user/{id_user}/items")
+async def get_user_items(id_user: int):
+    try:
+        response = supabase.rpc("get_users_items", {"p_user_id": id_user}).execute()
+
+        if not response.data:
+            raise HTTPException(status_code=404, detail="No items found for this user")
+
+        return response.data
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving user items: {str(e)}")
+
+
 @router.get("/{id}")
 async def get_item(id: int):
     response = supabase.table("items").select("*").eq("id", id).execute()
