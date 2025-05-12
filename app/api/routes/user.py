@@ -29,7 +29,12 @@ async def get_user(id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return response.data[0]
 
-@router.get("/{id}/{token}")
+@router.get("/{id}/{token}", responses={
+    400: {"description": "Datos inválidos"},
+    403: {"description": "Acceso denegado"},
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def access_token(id: int, token: str):
     """
     Verifica el token de acceso del usuario.
@@ -69,7 +74,13 @@ async def create_user(user: UserAll):
         }
 
 # Loging de usuario
-@router.post("/login")
+@router.post("/login", responses={
+    400: {"description": "Datos inválidos"},
+    401: {"description": "Contraseña incorrecta"},
+    403: {"description": "Acceso denegado"},
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def login(user: LoginRequest):
 
     response = supabase.table("users").select("*").eq("email", user.email).execute()
@@ -87,7 +98,11 @@ async def login(user: LoginRequest):
     "has_mascot": response.data[0]["has_mascot"]}
 
 
-@router.post("/achievements/{username}/{achievement_id}")
+@router.post("/achievements/{username}/{achievement_id}", responses={
+    400: {"description": "Datos inválidos"},
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def award_achievement(user: str, achievement_id: int):
     response_achievements = supabase.table("achievements").select("id, reward_coins").eq("id", achievement_id).execute()
     response_user = supabase.table("users").select("id, balance, day_streak, created_at").eq("username", user).execute()
@@ -155,7 +170,11 @@ async def set_day_streak(user: int):
     
     return {"message": f"Racha actualizada a {new_streak} días"}
 
-@router.put("/forgot-password")
+@router.put("/forgot-password", responses={
+    400: {"description": "Datos inválidos"},
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
 async def forgot_password(email: str, user_data: ForgotPassword):
     """
     Cambia la contraseña de un usuario olvidada.
