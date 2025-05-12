@@ -62,7 +62,7 @@ async def eat(id_user: int, id_item: int):
     500: {"description": "Error interno del servidor"}
 })
 async def buy_item(item: BuyItems):
-    response_user = supabase.table("users").select("id, balance").eq("id", item.user).execute()
+    response_user = supabase.table("users").select("id, balance").eq("id", item.id_user).execute()
     
     if not response_user.data:
         raise HTTPException(status_code=404, detail="User not found")
@@ -72,15 +72,22 @@ async def buy_item(item: BuyItems):
     
     try:
         new_balance = response_user.data[0]["balance"] - item.totalPrice
-        update_balance = supabase.table("users").update({"balance": new_balance}).eq("id", item.user).execute()
+        update_balance = supabase.table("users").update({"balance": new_balance}).eq("id", item.id_user).execute()
+        select_items = supabase.table("user_items").select("id_item, quantity").eq("id_user", item.id_user).execute()
         
         # Insertar cada ítem comprado
         for i in item.item:
-            supabase.table("user_items").insert({
-                "id_user": item.user,
-                "id_item": i.id_item,   
-                "quantity": i.quantity
-            }).execute()
+            if i.id_item in [j["id_item"] for j in select_items.data]:
+                # Si el ítem ya existe, actualizar la cantidad
+                existing_item = next((j for j in select_items.data if j["id_item"] == i.id_item), None)
+                new_quantity = existing_item["quantity"] + i.quantity
+                supabase.table("user_items").update({"quantity": new_quantity}).eq("id_item", i.id_item).execute()
+            else:
+                supabase.table("user_items").insert({
+                    "id_item": i.id_item, 
+                    "id_user": item.id_user,  
+                    "quantity": i.quantity
+                }).execute()
             
         return {"message": "Item bought successfully"}
     
