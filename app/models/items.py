@@ -13,6 +13,6 @@ class ItemBuy(BaseModel):
     totalPrice: int
 
 class BuyItems(BaseModel):
-    user: int
+    id_user: int
     item: List[ItemBuy]
     totalPrice: int
