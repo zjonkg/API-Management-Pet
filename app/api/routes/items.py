@@ -78,7 +78,6 @@ async def buy_item(item: BuyItems):
         # Insertar cada ítem comprado
         for i in item.item:
             if i.id_item in [j["id_item"] for j in select_items.data]:
-                # Si el ítem ya existe, actualizar la cantidad
                 existing_item = next((j for j in select_items.data if j["id_item"] == i.id_item), None)
                 new_quantity = existing_item["quantity"] + i.quantity
                 supabase.table("user_items").update({"quantity": new_quantity}).eq("id_item", i.id_item).execute()
