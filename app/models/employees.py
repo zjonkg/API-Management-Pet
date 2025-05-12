@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator, ValidationInfo
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class Employee(BaseModel):
@@ -12,6 +12,7 @@ class Employee(BaseModel):
 class EmployeeAll(Employee):
     second_name: str
     second_surname: str
+    birthday: str
     address: str
 
 class LoginRequest(BaseModel):
