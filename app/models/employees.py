@@ -12,7 +12,7 @@ class Employee(BaseModel):
 class EmployeeAll(Employee):
     second_name: str
     second_surname: str
-    birthday: str
+    birthdate: str
     address: str
 
 class LoginRequest(BaseModel):
