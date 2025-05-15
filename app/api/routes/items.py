@@ -24,7 +24,6 @@ async def get_user_items(id_user: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving user items: {str(e)}")
 
-
 @router.get("/{id}")
 async def get_item(id: int):
     response = supabase.table("items").select("*").eq("id", id).execute()
