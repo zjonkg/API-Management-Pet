@@ -21,7 +21,11 @@ async def get_employees(id: int):
     response = supabase.table("employees").select("*").eq("id", id).execute()
     return response.data
 
-@router.post("/singup")
+@router.post("/singup", responses={
+    400: {"description": "Datos inválidos"},
+    401: {"description": "Contraseña incorrecta"},
+    500: {"description": "Error interno del servidor"}
+})
 async def create_employee(employee: EmployeeAll):
     """
     Crea un nuevo empleado.
@@ -35,7 +39,11 @@ async def create_employee(employee: EmployeeAll):
         raise HTTPException(status_code=400, detail="Error creating employee")
     return response.data
 
-@router.post("/login")
+@router.post("/login", responses={
+    400: {"description": "Datos inválidos"},
+    401: {"description": "Contraseña incorrecta"},
+    500: {"description": "Error interno del servidor"}
+})
 async def login(employee: LoginRequest):
     """
     Iniciar sesion como empleado.

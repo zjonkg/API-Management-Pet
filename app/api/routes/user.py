@@ -13,7 +13,8 @@ router = APIRouter()
 async def get_users():
     response = supabase.table("users").select("*").execute()
     for user in response.data:
-        del user["password"]
+        del user["password"] 
+        del user["token_access"]
     return response.data
 
 # Obtener un usuario por ID
@@ -51,7 +52,7 @@ async def access_token(id: int, token: str):
     return {"message": "Token válido"}
 
 # Crear usuario
-@router.post("/singup", responses={
+@router.post("/signup", responses={
     400: {"description": "Datos inválidos"},
     401: {"description": "Contraseña incorrecta"},
     500: {"description": "Error interno del servidor"}
@@ -210,6 +211,8 @@ async def forgot_password(email: str, user_data: ForgotPassword):
                                 })\
                                 .eq("email", email)\
                                 .execute()
+        
+        supabase.table("users").update({"token": None}).eq("email", email).execute()
         
         if not update_response.data:
             raise HTTPException(
