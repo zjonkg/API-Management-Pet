@@ -40,6 +40,3 @@ async def create_result(play: Play):
         "message": "Resultado creado exitosamente",
         "data": response.data
     }
-
-#@router.put("/last_play/{id_user}/{id_minigame}")
-#async def 
