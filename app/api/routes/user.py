@@ -17,6 +17,19 @@ async def get_users():
         del user["token_access"]
     return response.data
 
+@router.get("/balance/{id}", responses={
+    404: {"description": "Usuario no encontrado"},
+    500: {"description": "Error interno del servidor"}
+})
+async def get_user_balance(id: int):
+    response = supabase.table("users").select("balance").eq("id", id).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    return {"balance": response.data[0]["balance"]}
+
+
 # Obtener un usuario por ID
 @router.get("/{id}", responses={
     400: {"description": "Datos inválidos"},
